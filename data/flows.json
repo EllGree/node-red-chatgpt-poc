@@ -1,0 +1,126 @@
+[
+    {
+        "id": "3528abd37031dabe",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "84112de77a7d8a12",
+        "type": "http in",
+        "z": "3528abd37031dabe",
+        "name": "User Input",
+        "url": "/message",
+        "method": "post",
+        "upload": true,
+        "swaggerDoc": "",
+        "x": 120,
+        "y": 60,
+        "wires": [
+            [
+                "3b75e51efa374e0d"
+            ]
+        ]
+    },
+    {
+        "id": "3b75e51efa374e0d",
+        "type": "json",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 290,
+        "y": 60,
+        "wires": [
+            [
+                "1ccc025305d0fcfe"
+            ]
+        ]
+    },
+    {
+        "id": "1ccc025305d0fcfe",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "Prepare Message",
+        "func": "let message = msg.payload.message;\nif (!message) {\n  return null; // Stop if empty\n}\nmsg.originalMessage = message;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 60,
+        "wires": [
+            [
+                "a816a2c6bd12d348"
+            ]
+        ]
+    },
+    {
+        "id": "a816a2c6bd12d348",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "YouTube Links Detect",
+        "func": "const regex = /(https?:\\/\\/(?:www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)([\\w-]{11}))/g;\nlet message = msg.originalMessage;\nlet matches = [];\nlet match;\n\nwhile ((match = regex.exec(message)) !== null) {\n  matches.push(match[3]); // YouTube video Id\n}\n\nmsg.videoIds = matches;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 60,
+        "wires": [
+            [
+                "37ae9efc5c549ebc"
+            ]
+        ]
+    },
+    {
+        "id": "37ae9efc5c549ebc",
+        "type": "switch",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "property": "videoIds.length",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 930,
+        "y": 60,
+        "wires": [
+            [
+                "3d73178979cd1041"
+            ]
+        ]
+    },
+    {
+        "id": "3d73178979cd1041",
+        "type": "split",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "videoIds",
+        "x": 1070,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    }
+]
