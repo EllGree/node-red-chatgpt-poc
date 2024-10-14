@@ -2,7 +2,7 @@
     {
         "id": "3528abd37031dabe",
         "type": "tab",
-        "label": "Flow 1",
+        "label": "Main Flow",
         "disabled": false,
         "info": "",
         "env": []
@@ -16,8 +16,8 @@
         "method": "post",
         "upload": true,
         "swaggerDoc": "",
-        "x": 100,
-        "y": 180,
+        "x": 80,
+        "y": 300,
         "wires": [
             [
                 "3b75e51efa374e0d"
@@ -32,8 +32,8 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 270,
-        "y": 180,
+        "x": 210,
+        "y": 300,
         "wires": [
             [
                 "1ccc025305d0fcfe"
@@ -45,15 +45,15 @@
         "type": "function",
         "z": "3528abd37031dabe",
         "name": "Prepare Message",
-        "func": "let message = msg.payload.message;\nif (!message) {\n  return null; // Stop if empty\n}\nmsg.originalMessage = message;\nreturn msg;",
+        "func": "\nif (msg.req && msg.req.body && msg.req.body.message) {\n  node.status({ fill: \"green\", shape: \"dot\", text: 'Message received:'+msg.req.body.message });\n  msg.originalMessage = msg.req.body.message;\n} else {\n  node.status({ fill: \"red\", shape: \"dot\", text: 'No message received' });\n  msg.payload = \"Message cannot be empty.\";\n  msg.statusCode = 400;\n}\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 180,
+        "x": 390,
+        "y": 300,
         "wires": [
             [
                 "a816a2c6bd12d348"
@@ -65,15 +65,15 @@
         "type": "function",
         "z": "3528abd37031dabe",
         "name": "YouTube Links Detect",
-        "func": "const regex = /(https?:\\/\\/(?:www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)([\\w-]{11}))/g;\nlet message = msg.originalMessage;\nlet matches = [];\nlet match;\n\nwhile ((match = regex.exec(message)) !== null) {\n  matches.push(match[3]); // YouTube video Id\n}\n\nmsg.videoIds = matches;\nreturn msg;",
+        "func": "const regex = /(https?:\\/\\/(?:www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)([\\w-]{11}))/g;\nlet message = msg.originalMessage, matches = [], match;\nwhile ((match = regex.exec(message)) !== null) {\n  matches.push(match[3]); // YouTube video Id\n}\nmsg.videoIds = matches;\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 700,
-        "y": 180,
+        "x": 640,
+        "y": 300,
         "wires": [
             [
                 "37ae9efc5c549ebc"
@@ -97,28 +97,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 1,
-        "x": 910,
-        "y": 180,
-        "wires": [
-            [
-                "3d73178979cd1041"
-            ]
-        ]
-    },
-    {
-        "id": "3d73178979cd1041",
-        "type": "split",
-        "z": "3528abd37031dabe",
-        "name": "",
-        "splt": "\\n",
-        "spltType": "str",
-        "arraySplt": 1,
-        "arraySpltType": "len",
-        "stream": false,
-        "addname": "",
-        "property": "videoIds",
-        "x": 1050,
-        "y": 180,
+        "x": 870,
+        "y": 300,
         "wires": [
             []
         ]
@@ -232,5 +212,52 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "c3fa0faa7d5c2091",
+        "type": "http in",
+        "z": "3528abd37031dabe",
+        "name": "Get Form",
+        "url": "/message",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 80,
+        "y": 180,
+        "wires": [
+            [
+                "e4dbe67cae96341f"
+            ]
+        ]
+    },
+    {
+        "id": "e4dbe67cae96341f",
+        "type": "template",
+        "z": "3528abd37031dabe",
+        "name": "HTML form",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "plain",
+        "template": "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Message sending</title>\n</head>\n\n<body>\n    <h1>Input your message</h1>\n    <form action=\"/message\" method=\"POST\">\n        <textarea name=\"message\" rows=\"5\" cols=\"50\" placeholder=\"Input your message\"></textarea><br>\n        <input type=\"submit\" value=\"Send\">\n    </form>\n</body>\n</html>",
+        "output": "str",
+        "x": 230,
+        "y": 180,
+        "wires": [
+            [
+                "ad4f593ea3daf956"
+            ]
+        ]
+    },
+    {
+        "id": "ad4f593ea3daf956",
+        "type": "http response",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 370,
+        "y": 180,
+        "wires": []
     }
 ]
