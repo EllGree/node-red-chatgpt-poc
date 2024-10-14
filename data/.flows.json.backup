@@ -168,7 +168,7 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 290,
+        "x": 250,
         "y": 100,
         "wires": [
             [
@@ -181,50 +181,57 @@
         "type": "function",
         "z": "3528abd37031dabe",
         "name": "Save Configs",
-        "func": "if (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    // Init the storage\n    let configByKey = {};\n    enabledConfigs.forEach(item => {\n        if (item.key && item.config) {\n            configByKey[item.key] = item.config;\n        }\n    });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({fill:\"green\",shape:\"dot\",text:\"Configurations stored\"});\n    return configByKey;\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n    return null;\n}\n",
+        "func": "const configByKey = {}; // Init the storage\nif (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    enabledConfigs.forEach(item => {\n            if(item.key && item.config) {\n                configByKey[item.key] = item.config;\n            }\n        });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({ fill: \"green\", shape: \"dot\", text: Object.keys(configByKey).length + ' configs stored.' });\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n}\nreturn configByKey;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
+        "x": 410,
         "y": 100,
         "wires": [
             [
-                "9d2556784fbdcedb"
+                "c027a6f358b0d719"
             ]
         ]
     },
     {
-        "id": "9d2556784fbdcedb",
-        "type": "debug",
+        "id": "c027a6f358b0d719",
+        "type": "function",
         "z": "3528abd37031dabe",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 680,
+        "name": "Check OpenAI API",
+        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['openai'] ?? null;\nif (cfg && cfg.apiKey && cfg.apiKey.length > 8) {\n    node.status({fill:\"green\",shape:\"dot\",text:\"OpenAI API: OK\"});\n} else {\n    node.status({fill:\"red\",shape:\"dot\",text:\"OpenAI API: Failed\"});\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
         "y": 100,
-        "wires": []
-    },
-    {
-        "id": "a4baa0caa76621af",
-        "type": "catch",
-        "z": "3528abd37031dabe",
-        "name": "",
-        "scope": null,
-        "uncaught": false,
-        "x": 480,
-        "y": 40,
         "wires": [
             [
-                "2bb18d73461d5ca0"
+                "2d1c653e58cf2d42"
             ]
+        ]
+    },
+    {
+        "id": "2d1c653e58cf2d42",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "Check Google Cloud API",
+        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['google-cloud'] ?? null;\nif (cfg && cfg.credentials && cfg.credentials.length > 8) {\n    node.status({fill:\"green\", shape:\"dot\", text:\"Google Cloud API: OK\"});\n} else {\n    node.status({fill:\"red\",shape:\"dot\",text:\"Google Cloud API: Failed\"});\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 100,
+        "wires": [
+            []
         ]
     }
 ]
