@@ -72,8 +72,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 180,
-        "y": 380,
+        "x": 280,
+        "y": 560,
         "wires": [
             [
                 "3072ef9e2dd719fa"
@@ -258,7 +258,7 @@
         "type": "function",
         "z": "3528abd37031dabe",
         "name": "OpenAI Prepare",
-        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['openai'] ?? null;\nif (!cfg || !cfg.apiKey) {\n    const text = 'OpenAI API key not found';\n    node.status({ fill: \"red\", shape: \"dot\", text });\n    node.error(text, msg);\n    return null;\n}\nconst userMessage = msg.enrichedMessage || msg.originalMessage;\nconst model = cfg.model ?? \"gpt-4o\";\nconst currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });\nconst prompt = `The current date is ${currentDate}. The current time is ${currentTime}. Your task is to chat freely with the user.`;\nconst messages = [{ role: \"system\", content: prompt },{ role: \"user\", content: userMessage }];\nmsg.auth = 'Bearer ' + cfg.apiKey;\nmsg.payload = { model, messages };\nnode.status({ fill: \"green\", shape: \"dot\", text: 'OpenAI Call prepared' });\nreturn msg;",
+        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['openai'] ?? null;\nif (!cfg || !cfg.apiKey) {\n    const text = 'OpenAI API key not found';\n    node.status({ fill: \"red\", shape: \"dot\", text });\n    node.error(text, msg);\n    return null;\n}\n\n// Get user message and system messages\nconst userMessage = msg.enrichedMessage || msg.originalMessage;\nconst systemMessages = msg.systemMessages || [];  // Ensure systemMessages is an array\n\n// Model and other configurations\nconst model = cfg.model ?? \"gpt-4o\";\nconst currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });\nconst prompt = `The current date is ${currentDate}. The current time is ${currentTime}. Your task is to chat freely with the user.`;\n\n// Base system prompt\nconst messages = [{ role: \"system\", content: prompt }];\n\n// Add the user message at the end\nmessages.push({ role: \"user\", content: userMessage });\n\n// Append system messages (e.g., captions) collected from Tactiq API\nsystemMessages.forEach(systemMessage => {\n    messages.push({ role: \"system\", content: systemMessage });\n});\n\n// Prepare the OpenAI API request\nmsg.auth = 'Bearer ' + cfg.apiKey;\nmsg.payload = { model, messages };\nnode.status({ fill: \"green\", shape: \"dot\", text: 'OpenAI Call prepared' });\n\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -342,8 +342,8 @@
         "stream": false,
         "addname": "",
         "property": "videoIds",
-        "x": 340,
-        "y": 380,
+        "x": 440,
+        "y": 560,
         "wires": [
             [
                 "789bf75c9ccd3ceb"
@@ -362,8 +362,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 500,
-        "y": 380,
+        "x": 600,
+        "y": 560,
         "wires": [
             [
                 "27b856dba9584a23"
@@ -399,12 +399,12 @@
                 "valueValue": ""
             }
         ],
-        "x": 670,
-        "y": 380,
+        "x": 770,
+        "y": 560,
         "wires": [
             [
                 "91c4ccca5ed2fef0",
-                "de44b07a6d939211"
+                "a0b939963d11202d"
             ]
         ]
     },
@@ -413,21 +413,23 @@
         "type": "function",
         "z": "3528abd37031dabe",
         "name": "Tactiq Reply",
-        "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    if (msg.payload && msg.payload.captions && msg.payload.captions.length > 0) {\n        if (!msg.systemMessages) {\n            msg.systemMessages = [];\n        }\n        // Function to convert seconds to SRT time format (HH:MM:SS,MMM)\n        const convertToSrtTime = (timeInSeconds) => {\n            const time = parseFloat(timeInSeconds);\n            const hours = Math.floor(time / 3600).toString().padStart(2, '0');\n            const minutes = Math.floor((time % 3600) / 60).toString().padStart(2, '0');\n            const seconds = Math.floor(time % 60).toString().padStart(2, '0');\n            const milliseconds = Math.floor((time % 1) * 1000).toString().padStart(3, '0');\n            return `${hours}:${minutes}:${seconds},${milliseconds}`;\n        };\n\n        // Generate SRT formatted transcript\n        const srtText = msg.payload.captions\n            .map((caption, index) => {\n                const startTime = convertToSrtTime(caption.start);\n                const endTime = convertToSrtTime((parseFloat(caption.start) + parseFloat(caption.dur)).toString());\n                return `${index + 1}\\n${startTime} --> ${endTime}\\n${caption.text}\\n`;\n            })\n            .join('\\n');\n\n        // Add system message for the OpenAI payload (or wherever you need it)\n        msg.systemMessages.push(`Transcription of YouTube video \"${msg.payload.title}\":\\n${srtText}`);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Captions received\" });\n    } else {\n        const text = \"No captions found.\";\n        node.status({ fill: \"yellow\", shape: \"ring\", text });\n        node.warn(text);\n    }\n} else {\n    const text = \"Tactiq API call failed\";\n    if (msg.payload && msg.payload.error && msg.payload.error.message) {\n        node.warn(`${text}: ${msg.payload.error.message}`);\n    } else if (msg.payload) {\n        node.warn(`${text}: ${JSON.stringify(msg.payload.error ?? msg.payload)}`);\n    } else {\n        node.warn(text);\n    }\n    node.status({ fill: \"red\", shape: \"dot\", text });\n}\nreturn msg;\n",
+        "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    if (msg.payload && msg.payload.captions && msg.payload.captions.length > 0) {\n        if (!msg.systemMessages) {\n            msg.systemMessages = [];\n        }\n        // Function to convert seconds to SRT time format (HH:MM:SS,MMM)\n        const convertToSrtTime = (timeInSeconds) => {\n            const time = parseFloat(timeInSeconds);\n            const hours = Math.floor(time / 3600).toString().padStart(2, '0');\n            const minutes = Math.floor((time % 3600) / 60).toString().padStart(2, '0');\n            const seconds = Math.floor(time % 60).toString().padStart(2, '0');\n            const milliseconds = Math.floor((time % 1) * 1000).toString().padStart(3, '0');\n            return `${hours}:${minutes}:${seconds},${milliseconds}`;\n        };\n\n        // Generate SRT formatted transcript\n        const srtText = msg.payload.captions\n            .map((caption, index) => {\n                const startTime = convertToSrtTime(caption.start);\n                const endTime = convertToSrtTime((parseFloat(caption.start) + parseFloat(caption.dur)).toString());\n                return `${index + 1}\\n${startTime} --> ${endTime}\\n${caption.text}\\n`;\n            })\n            .join('\\n');\n\n        // Add system message for the OpenAI payload (or wherever you need it)\n        msg.systemMessages.push(`Transcription of YouTube video https://youtu.be/${msg.videoIds} \"${msg.payload.title}\":\\n${srtText}`);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Captions received\" });\n    } else {\n        const text = \"No captions found.\";\n        node.status({ fill: \"yellow\", shape: \"ring\", text });\n        node.warn(text);\n    }\n} else {\n    const text = \"Tactiq API call failed\";\n    if (msg.payload && msg.payload.error && msg.payload.error.message) {\n        node.warn(`${text}: ${msg.payload.error.message}`);\n    } else if (msg.payload) {\n        node.warn(`${text}: ${JSON.stringify(msg.payload.error ?? msg.payload)}`);\n    } else {\n        node.warn(text);\n    }\n    node.status({ fill: \"red\", shape: \"dot\", text });\n}\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 930,
-        "y": 380,
+        "x": 950,
+        "y": 560,
         "wires": [
-            []
+            [
+                "10c99a8b606998da"
+            ]
         ]
     },
     {
-        "id": "de44b07a6d939211",
+        "id": "a0b939963d11202d",
         "type": "debug",
         "z": "3528abd37031dabe",
         "name": "debug 1",
@@ -435,12 +437,11 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
+        "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 800,
-        "y": 320,
+        "x": 960,
+        "y": 640,
         "wires": []
     }
 ]
