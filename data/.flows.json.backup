@@ -1,1 +1,230 @@
-{}
+[
+    {
+        "id": "3528abd37031dabe",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "84112de77a7d8a12",
+        "type": "http in",
+        "z": "3528abd37031dabe",
+        "name": "User Input",
+        "url": "/message",
+        "method": "post",
+        "upload": true,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 180,
+        "wires": [
+            [
+                "3b75e51efa374e0d"
+            ]
+        ]
+    },
+    {
+        "id": "3b75e51efa374e0d",
+        "type": "json",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 270,
+        "y": 180,
+        "wires": [
+            [
+                "1ccc025305d0fcfe"
+            ]
+        ]
+    },
+    {
+        "id": "1ccc025305d0fcfe",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "Prepare Message",
+        "func": "let message = msg.payload.message;\nif (!message) {\n  return null; // Stop if empty\n}\nmsg.originalMessage = message;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 180,
+        "wires": [
+            [
+                "a816a2c6bd12d348"
+            ]
+        ]
+    },
+    {
+        "id": "a816a2c6bd12d348",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "YouTube Links Detect",
+        "func": "const regex = /(https?:\\/\\/(?:www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)([\\w-]{11}))/g;\nlet message = msg.originalMessage;\nlet matches = [];\nlet match;\n\nwhile ((match = regex.exec(message)) !== null) {\n  matches.push(match[3]); // YouTube video Id\n}\n\nmsg.videoIds = matches;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 180,
+        "wires": [
+            [
+                "37ae9efc5c549ebc"
+            ]
+        ]
+    },
+    {
+        "id": "37ae9efc5c549ebc",
+        "type": "switch",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "property": "videoIds.length",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 910,
+        "y": 180,
+        "wires": [
+            [
+                "3d73178979cd1041"
+            ]
+        ]
+    },
+    {
+        "id": "3d73178979cd1041",
+        "type": "split",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "videoIds",
+        "x": 1050,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "98aa88a133dc42a6",
+        "type": "inject",
+        "z": "3528abd37031dabe",
+        "name": "On Start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 100,
+        "wires": [
+            [
+                "de6b8359132db89f"
+            ]
+        ]
+    },
+    {
+        "id": "de6b8359132db89f",
+        "type": "http request",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://portal.api.octopus-news.com/api/v1/services/ai/providers/octopus-news",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 290,
+        "y": 100,
+        "wires": [
+            [
+                "2bb18d73461d5ca0"
+            ]
+        ]
+    },
+    {
+        "id": "2bb18d73461d5ca0",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "Save Configs",
+        "func": "if (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    // Init the storage\n    let configByKey = {};\n    enabledConfigs.forEach(item => {\n        if (item.key && item.config) {\n            configByKey[item.key] = item.config;\n        }\n    });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({fill:\"green\",shape:\"dot\",text:\"Configurations stored\"});\n    return configByKey;\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 100,
+        "wires": [
+            [
+                "9d2556784fbdcedb"
+            ]
+        ]
+    },
+    {
+        "id": "9d2556784fbdcedb",
+        "type": "debug",
+        "z": "3528abd37031dabe",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "a4baa0caa76621af",
+        "type": "catch",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 480,
+        "y": 40,
+        "wires": [
+            [
+                "2bb18d73461d5ca0"
+            ]
+        ]
+    }
+]

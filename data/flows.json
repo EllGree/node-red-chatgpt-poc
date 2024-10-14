@@ -16,8 +16,8 @@
         "method": "post",
         "upload": true,
         "swaggerDoc": "",
-        "x": 120,
-        "y": 60,
+        "x": 100,
+        "y": 180,
         "wires": [
             [
                 "3b75e51efa374e0d"
@@ -32,8 +32,8 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 290,
-        "y": 60,
+        "x": 270,
+        "y": 180,
         "wires": [
             [
                 "1ccc025305d0fcfe"
@@ -52,8 +52,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
-        "y": 60,
+        "x": 470,
+        "y": 180,
         "wires": [
             [
                 "a816a2c6bd12d348"
@@ -72,8 +72,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 720,
-        "y": 60,
+        "x": 700,
+        "y": 180,
         "wires": [
             [
                 "37ae9efc5c549ebc"
@@ -97,8 +97,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 1,
-        "x": 930,
-        "y": 60,
+        "x": 910,
+        "y": 180,
         "wires": [
             [
                 "3d73178979cd1041"
@@ -117,10 +117,118 @@
         "stream": false,
         "addname": "",
         "property": "videoIds",
-        "x": 1070,
-        "y": 60,
+        "x": 1050,
+        "y": 180,
         "wires": [
             []
         ]
+    },
+    {
+        "id": "98aa88a133dc42a6",
+        "type": "inject",
+        "z": "3528abd37031dabe",
+        "name": "On Start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 100,
+        "wires": [
+            [
+                "de6b8359132db89f"
+            ]
+        ]
+    },
+    {
+        "id": "de6b8359132db89f",
+        "type": "http request",
+        "z": "3528abd37031dabe",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://portal.api.octopus-news.com/api/v1/services/ai/providers/octopus-news",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 290,
+        "y": 100,
+        "wires": [
+            [
+                "2bb18d73461d5ca0",
+                "7242c272eef6137b"
+            ]
+        ]
+    },
+    {
+        "id": "2bb18d73461d5ca0",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "name": "Save Configs",
+        "func": "if (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    // Init the storage\n    let configByKey = {};\n    enabledConfigs.forEach(item => {\n        if (item.key && item.config) {\n            configByKey[item.key] = item.config;\n        }\n    });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({fill:\"green\",shape:\"dot\",text:\"Configurations stored\"});\n    return configByKey;\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n    return null;\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 100,
+        "wires": [
+            [
+                "9d2556784fbdcedb"
+            ]
+        ]
+    },
+    {
+        "id": "9d2556784fbdcedb",
+        "type": "debug",
+        "z": "3528abd37031dabe",
+        "name": "API reply parsed",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "7242c272eef6137b",
+        "type": "debug",
+        "z": "3528abd37031dabe",
+        "name": "API reply",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 40,
+        "wires": []
     }
 ]
