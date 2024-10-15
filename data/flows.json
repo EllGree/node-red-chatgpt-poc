@@ -8,15 +8,77 @@
         "env": []
     },
     {
+        "id": "3e266a338db4a3bd",
+        "type": "group",
+        "z": "3528abd37031dabe",
+        "name": "Input Enrichment Group",
+        "style": {
+            "stroke": "#bfdbef",
+            "fill": "#ffffff",
+            "label": true
+        },
+        "nodes": [
+            "aef32bf013bf4cb1",
+            "65efc2c706921399",
+            "f8e936c96b175f20",
+            "382027805d06f27f",
+            "5840f84bf46885cd"
+        ],
+        "x": 474,
+        "y": 379,
+        "w": 812,
+        "h": 82
+    },
+    {
+        "id": "fa6f09aee615fd3b",
+        "type": "group",
+        "z": "3528abd37031dabe",
+        "name": "OpenAI Group",
+        "style": {
+            "stroke": "#bfdbef",
+            "fill": "#ffffff",
+            "label": true
+        },
+        "nodes": [
+            "a505f83094ce3c39",
+            "10c99a8b606998da",
+            "0cec7430cfd01dd9"
+        ],
+        "x": 714,
+        "y": 219,
+        "w": 572,
+        "h": 82
+    },
+    {
+        "id": "dc31dea15625e354",
+        "type": "group",
+        "z": "3528abd37031dabe",
+        "name": "Refresh configs every hour",
+        "style": {
+            "stroke": "#bfdbef",
+            "fill": "#ffffff",
+            "label": true
+        },
+        "nodes": [
+            "98aa88a133dc42a6",
+            "de6b8359132db89f",
+            "2bb18d73461d5ca0"
+        ],
+        "x": 34,
+        "y": 39,
+        "w": 532,
+        "h": 82
+    },
+    {
         "id": "84112de77a7d8a12",
         "type": "http in",
         "z": "3528abd37031dabe",
-        "name": "User Input",
+        "name": "POST /message",
         "url": "/message",
         "method": "post",
         "upload": true,
         "swaggerDoc": "",
-        "x": 80,
+        "x": 100,
         "y": 220,
         "wires": [
             [
@@ -32,7 +94,7 @@
         "property": "payload",
         "action": "",
         "pretty": false,
-        "x": 210,
+        "x": 250,
         "y": 220,
         "wires": [
             [
@@ -44,166 +106,36 @@
         "id": "1ccc025305d0fcfe",
         "type": "function",
         "z": "3528abd37031dabe",
-        "name": "Check Message",
-        "func": "\nif (msg.req && msg.req.body && msg.req.body.message) {\n  msg.originalMessage = msg.req.body.message;\n  node.status({ fill: \"green\", shape: \"dot\", text: `Received ${msg.originalMessage.length} chars`});\n} else {\n  const text = \"Empty request received\";\n  node.status({ fill: \"red\", shape: \"dot\", text });\n  node.error(text, msg);\n  return null;\n}\nreturn msg;\n",
+        "name": "Get URLs",
+        "func": "\nif (msg.req && msg.req.body && msg.req.body.message) {\n  msg.originalMessage = msg.req.body.message;\n  msg.url = Array.from(msg.originalMessage.match(/(https?:\\/\\/[^\\s]+)/g));\n  node.status({ fill: \"green\", shape: \"dot\", text: `${msg.originalMessage.length} chars, ${msg.url.length} links`});\n} else {\n  const text = \"Empty request received\";\n  node.status({ fill: \"red\", shape: \"dot\", text });\n  node.error(text, msg);\n  return null; // Stop\n}\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 360,
+        "x": 380,
         "y": 220,
         "wires": [
             [
-                "a816a2c6bd12d348"
+                "6a75df7eed810537"
             ]
-        ]
-    },
-    {
-        "id": "a816a2c6bd12d348",
-        "type": "function",
-        "z": "3528abd37031dabe",
-        "name": "Detect YouTube",
-        "func": "const re = /https?:\\/\\/(?:www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)[\\w-]+/g;\nconst parser = (s) => {\n    const match = s.match(/^.*((youtu.be\\/)|(v\\/)|(\\/u\\/\\w\\/)|(embed\\/)|(watch\\?))\\??v?=?([^#&?]*).*/);\n    return (match && match[7].length==11) ? match[7] : null;\n}\nmsg.videoIds = msg.originalMessage.match(re).map(parser);\nif (msg.videoIds.length > 0) {\n    msg.videoIds = msg.videoIds.filter((i, n) => msg.videoIds.indexOf(i) === n); // Remove dups\n    node.status({ fill: \"green\", shape: \"dot\", text: `${msg.videoIds.length} video(s) found` });\n} else {\n    node.status({ fill: \"yellow\", shape: \"ring\", text: \"No video IDs found\" });\n}\n\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 280,
-        "y": 560,
-        "wires": [
-            [
-                "3072ef9e2dd719fa"
-            ]
-        ]
-    },
-    {
-        "id": "98aa88a133dc42a6",
-        "type": "inject",
-        "z": "3528abd37031dabe",
-        "name": "Init",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 90,
-        "y": 100,
-        "wires": [
-            [
-                "de6b8359132db89f"
-            ]
-        ]
-    },
-    {
-        "id": "de6b8359132db89f",
-        "type": "http request",
-        "z": "3528abd37031dabe",
-        "name": "Get Configs",
-        "method": "GET",
-        "ret": "obj",
-        "paytoqs": "ignore",
-        "url": "https://portal.api.octopus-news.com/api/v1/services/ai/providers/octopus-news",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 230,
-        "y": 100,
-        "wires": [
-            [
-                "2bb18d73461d5ca0"
-            ]
-        ]
-    },
-    {
-        "id": "2bb18d73461d5ca0",
-        "type": "function",
-        "z": "3528abd37031dabe",
-        "name": "Save Configs",
-        "func": "const configByKey = {}; // Init the storage\nif (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    enabledConfigs.forEach(item => {\n            if(item.key && item.config) {\n                configByKey[item.key] = item.config;\n            }\n        });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({ fill: \"green\", shape: \"dot\", text: Object.keys(configByKey).length + ' configs stored.' });\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n}\nreturn configByKey;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 390,
-        "y": 100,
-        "wires": [
-            [
-                "c027a6f358b0d719"
-            ]
-        ]
-    },
-    {
-        "id": "c027a6f358b0d719",
-        "type": "function",
-        "z": "3528abd37031dabe",
-        "name": "Check OpenAI",
-        "func": "const serviceConfigs = global.get('serviceConfigs'), key = 'openai';\nconst cfg = serviceConfigs[key] ?? null;\nif (cfg && cfg.apiKey && cfg.apiKey.length > 8) {\n    node.status({fill:\"green\", shape:\"dot\", text:`${key} API: OK`});\n} else {\n    node.status({fill:\"red\",shape:\"dot\",text:`${key} API: Failed`});\n}\nreturn cfg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 560,
-        "y": 100,
-        "wires": [
-            []
         ]
     },
     {
         "id": "c3fa0faa7d5c2091",
         "type": "http in",
         "z": "3528abd37031dabe",
-        "name": "User Form",
+        "name": "GET /message",
         "url": "/message",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 1140,
-        "y": 40,
+        "x": 100,
+        "y": 180,
         "wires": [
             [
                 "e4dbe67cae96341f"
-            ]
-        ]
-    },
-    {
-        "id": "e4dbe67cae96341f",
-        "type": "template",
-        "z": "3528abd37031dabe",
-        "name": "UI form",
-        "field": "payload",
-        "fieldType": "msg",
-        "format": "html",
-        "syntax": "mustache",
-        "template": "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Start page</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            background-color: #f4f4f4;\n            margin: 0;\n            padding: 20px;\n        }\n        .container {\n            background-color: #fff;\n            padding: 20px;\n            border-radius: 8px;\n            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n        }\n        textarea {\n            width: calc(100% - 20px);\n            padding: 10px;\n            border-radius: 4px;\n            border: 1px solid #ccc;\n            font-size: 16px;\n            resize: none;\n        }\n        input[type=\"submit\"] {\n            background-color: #4CAF50;\n            color: white;\n            padding: 10px 20px;\n            border: none;\n            border-radius: 4px;\n            cursor: pointer;\n            font-size: 16px;\n        }\n        input[type=\"submit\"]:hover {\n            background-color: #45a049;\n        }\n        .error {\n            color: red;\n            margin-bottom: 10px;\n        }\n        .reply {\n            color: DarkGreen;\n            margin-bottom: 10px;\n        }\n    </style>\n</head>\n\n<body>\n    {{#payload.error}}\n    <div class=\"error\">{{payload.error}}</div>\n    {{/payload.error}}\n    {{#payload.reply}}\n    <div class=\"reply\">{{payload.reply}}</div>\n    {{/payload.reply}}\n    <div class=\"container\">\n        <form id=\"messageForm\" action=\"/message\" method=\"POST\">\n            <textarea id=\"messageInput\" name=\"message\" rows=\"5\" placeholder=\"Type here, Ctrl + Enter to send\"></textarea>\n            <br/>\n            <input type=\"submit\" value=\"Send\">\n        </form>\n    </div>\n</body>\n<script>\nconst input = document.getElementById('messageInput');\nconst handler = (event) => {\n    if (event.ctrlKey && event.key === 'Enter') {\n        event.preventDefault(); // Prevent the default new line\n        document.getElementById('messageForm').submit(); // Submit the form\n    }\n}\ninput.addEventListener('keydown', handler);\ninput.focus();\n</script>\n</html>",
-        "output": "str",
-        "x": 1340,
-        "y": 100,
-        "wires": [
-            [
-                "ad4f593ea3daf956"
             ]
         ]
     },
@@ -214,8 +146,8 @@
         "name": "End",
         "statusCode": "",
         "headers": {},
-        "x": 1470,
-        "y": 100,
+        "x": 1490,
+        "y": 180,
         "wires": []
     },
     {
@@ -225,8 +157,8 @@
         "name": "",
         "scope": null,
         "uncaught": false,
-        "x": 940,
-        "y": 100,
+        "x": 980,
+        "y": 120,
         "wires": [
             [
                 "648684bf24ddc1c9"
@@ -245,8 +177,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1120,
-        "y": 100,
+        "x": 1160,
+        "y": 120,
         "wires": [
             [
                 "e4dbe67cae96341f"
@@ -257,16 +189,17 @@
         "id": "10c99a8b606998da",
         "type": "function",
         "z": "3528abd37031dabe",
+        "g": "fa6f09aee615fd3b",
         "name": "OpenAI Prepare",
-        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['openai'] ?? null;\nif (!cfg || !cfg.apiKey) {\n    const text = 'OpenAI API key not found';\n    node.status({ fill: \"red\", shape: \"dot\", text });\n    node.error(text, msg);\n    return null;\n}\n\n// Get user message and system messages\nconst userMessage = msg.enrichedMessage || msg.originalMessage;\nconst systemMessages = msg.systemMessages || [];  // Ensure systemMessages is an array\n\n// Model and other configurations\nconst model = cfg.model ?? \"gpt-4o\";\nconst currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });\nconst prompt = `The current date is ${currentDate}. The current time is ${currentTime}. Your task is to chat freely with the user.`;\n\n// Base system prompt\nconst messages = [{ role: \"system\", content: prompt }];\n\n// Add the user message at the end\nmessages.push({ role: \"user\", content: userMessage });\n\n// Append system messages (e.g., captions) collected from Tactiq API\nsystemMessages.forEach(systemMessage => {\n    messages.push({ role: \"system\", content: systemMessage });\n});\n\n// Prepare the OpenAI API request\nmsg.auth = 'Bearer ' + cfg.apiKey;\nmsg.payload = { model, messages };\nnode.status({ fill: \"green\", shape: \"dot\", text: 'OpenAI Call prepared' });\n\nreturn msg;\n",
+        "func": "const serviceConfigs = global.get('serviceConfigs');\nconst cfg = serviceConfigs['openai'] ?? null;\nif (!cfg || !cfg.apiKey) {\n    const text = 'OpenAI API key not found';\n    node.status({ fill: \"red\", shape: \"dot\", text });\n    node.error(text, msg);\n    return null;\n}\n\n// Get user message and system messages\nconst userMessage = msg.enrichedMessage || msg.originalMessage;\nconst systemMessages = msg.systemMessages || [];  // Ensure systemMessages is an array\n\n// Model and other configurations\nconst model = cfg.model ?? \"gpt-4o\";\nconst currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });\nconst prompt = `The current date is ${currentDate}. The current time is ${currentTime}. Your task is to chat freely with the user.`;\n\n// Base system prompt\nconst messages = [{ role: \"system\", content: prompt }];\n\n// Add the user message at the end\nmessages.push({ role: \"user\", content: userMessage });\n\n// Append system messages\nsystemMessages.forEach((m) => messages.push({ role: \"system\", content: m}));\n\n// Prepare the OpenAI API request\nmsg.auth = 'Bearer ' + cfg.apiKey;\nmsg.payload = { model, messages };\nnode.status({ fill: \"green\", shape: \"dot\", text: `Send ${messages.length} messages`});\n\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 960,
-        "y": 220,
+        "x": 820,
+        "y": 260,
         "wires": [
             [
                 "0cec7430cfd01dd9"
@@ -277,6 +210,7 @@
         "id": "0cec7430cfd01dd9",
         "type": "http request",
         "z": "3528abd37031dabe",
+        "g": "fa6f09aee615fd3b",
         "name": "OpenAI API Call",
         "method": "POST",
         "ret": "obj",
@@ -302,8 +236,8 @@
                 "valueValue": "application/json"
             }
         ],
-        "x": 1140,
-        "y": 220,
+        "x": 1000,
+        "y": 260,
         "wires": [
             [
                 "a505f83094ce3c39"
@@ -314,16 +248,17 @@
         "id": "a505f83094ce3c39",
         "type": "function",
         "z": "3528abd37031dabe",
+        "g": "fa6f09aee615fd3b",
         "name": "OpenAI Reply",
-        "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    if (msg.payload && msg.payload.choices && msg.payload.choices.length > 0) {\n        const reply = msg.payload.choices[0].message.content;\n        msg.payload = { reply };\n        node.status({fill:\"green\", shape:\"dot\", text:`Received ${reply.length} chars`});\n        return msg;\n    } else {\n        const text = \"OpenAI API reply has no choices.\";\n        node.status({fill:\"red\", shape:\"dot\", text});\n        node.error(text, msg);\n        return null;\n    }\n} else {\n    const text = \"OpenAI API call failed.\";\n    if (msg.payload && msg.payload.error && msg.payload.error.message) {\n        node.error(`OpenAI API Error: ${msg.payload.error.message}`, msg);\n    } else if (msg.payload) {\n        node.error(`OpenAI API Error: ${JSON.stringify(msg.payload.error ?? msg.payload)}`, msg);\n    } else {\n        node.error(text, msg);\n    }\n    node.status({fill:\"red\", shape:\"dot\", text });\n    return null;\n}\n",
+        "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    if (msg.payload && msg.payload.choices && msg.payload.choices.length > 0) {\n        const paragraphs = (lines) => {\n            let inList = false;\n            for (let i = 0; i < lines.length; i++) {\n                if (/^\\d+\\.\\s(.*)/.test(lines[i])) {\n                    let listItem = lines[i].replace(/^\\d+\\.\\s(.*)/, '<li>$1</li>');\n                    if (!inList) {\n                        lines[i] = '<ol>\\n' + listItem;\n                        inList = true;\n                    } else {\n                        lines[i] = listItem;\n                    }\n                    if (i + 1 >= lines.length || !/^\\d+\\.\\s(.*)/.test(lines[i + 1])) {\n                        lines[i] += '\\n</ol>';\n                        inList = false;\n                    }\n                } else {\n                    if (lines[i].trim() !== '') {\n                        lines[i] = '<p>' + lines[i] + '</p>';\n                    }\n                }\n            }\n            return lines.join('\\n');\n        };\n        const md2html = (reply) => paragraphs(\n            reply.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')\n            .replace(/(\\*|_)(.*?)\\1/g, '<em>$2</em>')\n            .replace(/\\[(.*?)\\]\\((.*?)\\)/g, '<a href=\"$2\">$1</a>')\n            .replace(/^# (.*$)/gim, '<h1>$1</h1>')\n            .replace(/^## (.*$)/gim, '<h2>$1</h2>')\n            .replace(/^### (.*$)/gim, '<h3>$1</h3>')\n            .split('\\n'));\n        msg.payload.reply = md2html(msg.payload.choices[0].message.content);\n        node.status({ fill: \"green\", shape: \"dot\", text: `Received ${msg.payload.reply.length} chars`});\n        return msg;\n    } else {\n        const text = \"OpenAI API reply has no choices.\";\n        node.status({fill:\"red\", shape:\"dot\", text});\n        node.error(text, msg);\n        return null;\n    }\n} else {\n    const text = \"OpenAI API call failed.\";\n    if (msg.payload && msg.payload.error && msg.payload.error.message) {\n        node.error(`OpenAI API Error: ${msg.payload.error.message}`, msg);\n    } else if (msg.payload) {\n        node.error(`OpenAI API Error: ${JSON.stringify(msg.payload.error ?? msg.payload)}`, msg);\n    } else {\n        node.error(text, msg);\n    }\n    node.status({fill:\"red\", shape:\"dot\", text });\n    return null;\n}\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1320,
-        "y": 220,
+        "x": 1180,
+        "y": 260,
         "wires": [
             [
                 "e4dbe67cae96341f"
@@ -331,97 +266,224 @@
         ]
     },
     {
-        "id": "3072ef9e2dd719fa",
-        "type": "split",
+        "id": "6a75df7eed810537",
+        "type": "switch",
         "z": "3528abd37031dabe",
-        "name": "Split IDs",
-        "splt": "",
-        "spltType": "str",
-        "arraySplt": 1,
-        "arraySpltType": "len",
-        "stream": false,
-        "addname": "",
-        "property": "videoIds",
-        "x": 440,
-        "y": 560,
+        "name": "",
+        "property": "url.length",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lte",
+                "v": "0",
+                "vt": "str"
+            },
+            {
+                "t": "gt",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 510,
+        "y": 220,
         "wires": [
             [
-                "789bf75c9ccd3ceb"
+                "10c99a8b606998da"
+            ],
+            [
+                "aef32bf013bf4cb1"
             ]
         ]
     },
     {
-        "id": "789bf75c9ccd3ceb",
-        "type": "function",
+        "id": "98aa88a133dc42a6",
+        "type": "inject",
         "z": "3528abd37031dabe",
-        "name": "Tactiq Prepare",
-        "func": "msg.payload = {videoUrl: `https://www.youtube.com/watch?v=${msg.videoIds}`, langCode: 'en'};\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 600,
-        "y": 560,
+        "g": "dc31dea15625e354",
+        "name": "Configs",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 80,
         "wires": [
             [
-                "27b856dba9584a23"
+                "de6b8359132db89f"
             ]
         ]
     },
     {
-        "id": "27b856dba9584a23",
+        "id": "de6b8359132db89f",
         "type": "http request",
         "z": "3528abd37031dabe",
-        "name": "Tactiq Call",
-        "method": "POST",
+        "g": "dc31dea15625e354",
+        "name": "Fetch Configs",
+        "method": "GET",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "https://tactiq-apps-prod.tactiq.io/transcript",
+        "url": "https://portal.api.octopus-news.com/api/v1/services/ai/providers/octopus-news",
         "tls": "",
         "persist": false,
         "proxy": "",
         "insecureHTTPParser": false,
         "authType": "",
         "senderr": false,
-        "headers": [
-            {
-                "keyType": "Accept",
-                "keyValue": "",
-                "valueType": "application/json",
-                "valueValue": ""
-            },
-            {
-                "keyType": "Content-Type",
-                "keyValue": "",
-                "valueType": "application/json",
-                "valueValue": ""
-            }
-        ],
-        "x": 770,
-        "y": 560,
+        "headers": [],
+        "x": 300,
+        "y": 80,
         "wires": [
             [
-                "91c4ccca5ed2fef0",
-                "a0b939963d11202d"
+                "2bb18d73461d5ca0"
             ]
         ]
     },
     {
-        "id": "91c4ccca5ed2fef0",
+        "id": "2bb18d73461d5ca0",
         "type": "function",
         "z": "3528abd37031dabe",
-        "name": "Tactiq Reply",
-        "func": "if (msg.statusCode >= 200 && msg.statusCode < 300) {\n    if (msg.payload && msg.payload.captions && msg.payload.captions.length > 0) {\n        if (!msg.systemMessages) {\n            msg.systemMessages = [];\n        }\n        // Function to convert seconds to SRT time format (HH:MM:SS,MMM)\n        const convertToSrtTime = (timeInSeconds) => {\n            const time = parseFloat(timeInSeconds);\n            const hours = Math.floor(time / 3600).toString().padStart(2, '0');\n            const minutes = Math.floor((time % 3600) / 60).toString().padStart(2, '0');\n            const seconds = Math.floor(time % 60).toString().padStart(2, '0');\n            const milliseconds = Math.floor((time % 1) * 1000).toString().padStart(3, '0');\n            return `${hours}:${minutes}:${seconds},${milliseconds}`;\n        };\n\n        // Generate SRT formatted transcript\n        const srtText = msg.payload.captions\n            .map((caption, index) => {\n                const startTime = convertToSrtTime(caption.start);\n                const endTime = convertToSrtTime((parseFloat(caption.start) + parseFloat(caption.dur)).toString());\n                return `${index + 1}\\n${startTime} --> ${endTime}\\n${caption.text}\\n`;\n            })\n            .join('\\n');\n\n        // Add system message for the OpenAI payload (or wherever you need it)\n        msg.systemMessages.push(`Transcription of YouTube video https://youtu.be/${msg.videoIds} \"${msg.payload.title}\":\\n${srtText}`);\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Captions received\" });\n    } else {\n        const text = \"No captions found.\";\n        node.status({ fill: \"yellow\", shape: \"ring\", text });\n        node.warn(text);\n    }\n} else {\n    const text = \"Tactiq API call failed\";\n    if (msg.payload && msg.payload.error && msg.payload.error.message) {\n        node.warn(`${text}: ${msg.payload.error.message}`);\n    } else if (msg.payload) {\n        node.warn(`${text}: ${JSON.stringify(msg.payload.error ?? msg.payload)}`);\n    } else {\n        node.warn(text);\n    }\n    node.status({ fill: \"red\", shape: \"dot\", text });\n}\nreturn msg;\n",
+        "g": "dc31dea15625e354",
+        "name": "Save Configs",
+        "func": "const configByKey = {}; // Init the storage\nif (msg.payload && msg.payload.enabled && Array.isArray(msg.payload.enabled)) {\n    const enabledConfigs = msg.payload.enabled;\n    enabledConfigs.forEach(item => {\n            if(item.key && item.config) {\n                configByKey[item.key] = item.config;\n            }\n        });\n    // Save configs in global context\n    global.set('serviceConfigs', configByKey);\n    node.status({ fill: \"green\", shape: \"dot\", text: Object.keys(configByKey).length + ' configs stored.' });\n} else {\n    node.error(\"Cannot get services configuratoions\", msg);\n    node.status({fill:\"red\",shape:\"ring\",text:\"Failed to get configs\"});\n}\nreturn configByKey;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 950,
-        "y": 560,
+        "x": 470,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "aef32bf013bf4cb1",
+        "type": "split",
+        "z": "3528abd37031dabe",
+        "g": "3e266a338db4a3bd",
+        "name": "Split URLs",
+        "splt": "",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "url",
+        "x": 570,
+        "y": 420,
+        "wires": [
+            [
+                "65efc2c706921399"
+            ]
+        ]
+    },
+    {
+        "id": "65efc2c706921399",
+        "type": "http request",
+        "z": "3528abd37031dabe",
+        "g": "3e266a338db4a3bd",
+        "name": "Fetch URL",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 730,
+        "y": 420,
+        "wires": [
+            [
+                "f8e936c96b175f20"
+            ]
+        ]
+    },
+    {
+        "id": "f8e936c96b175f20",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "g": "3e266a338db4a3bd",
+        "name": "Parse HTML",
+        "func": "const html = msg.payload;  // The HTML content\nmsg.url = {\n    link: msg.url, \n    title: (html.match(/<title>(.*?)<\\/title>/) || [])[1] || \"No title found\", \n    description: (html.match(/ name=\"description\" content=\"(.*?)\"/) || [])[1] || \"No description found\",\n    h1: (html.match(/<h1>(.*?)<\\/h1>/) || [])[1] || \"\"\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 420,
+        "wires": [
+            [
+                "382027805d06f27f"
+            ]
+        ]
+    },
+    {
+        "id": "382027805d06f27f",
+        "type": "join",
+        "z": "3528abd37031dabe",
+        "g": "3e266a338db4a3bd",
+        "name": "",
+        "mode": "auto",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "useparts": false,
+        "accumulate": true,
+        "timeout": "",
+        "count": "",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "num",
+        "reduceFixup": "",
+        "x": 1030,
+        "y": 420,
+        "wires": [
+            [
+                "5840f84bf46885cd"
+            ]
+        ]
+    },
+    {
+        "id": "5840f84bf46885cd",
+        "type": "function",
+        "z": "3528abd37031dabe",
+        "g": "3e266a338db4a3bd",
+        "name": "Sys Messages",
+        "func": "msg.systemMessages = msg.url.map((u) => `URL: ${u.link}\\nTitle: ${u.title}\\nDescription: ${u.description}\\n${u.h1 ? 'Header:'+u.h1 : ''}`);\ndelete(msg.payload);\ndelete(msg.url);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1180,
+        "y": 420,
         "wires": [
             [
                 "10c99a8b606998da"
@@ -429,20 +491,22 @@
         ]
     },
     {
-        "id": "a0b939963d11202d",
-        "type": "debug",
+        "id": "e4dbe67cae96341f",
+        "type": "template",
         "z": "3528abd37031dabe",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 960,
-        "y": 640,
-        "wires": []
+        "name": "UI form",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Start page</title>\n    <style>\n        body {\n            font-family: Arial, sans-serif;\n            background-color: #f4f4f4;\n            margin: 0;\n            padding: 20px;\n        }\n        .container {\n            background-color: #fff;\n            padding: 20px;\n            border-radius: 8px;\n            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);\n        }\n        textarea {\n            width: calc(100% - 20px);\n            padding: 10px;\n            border-radius: 4px;\n            border: 1px solid #ccc;\n            font-size: 16px;\n            resize: none;\n        }\n        input[type=\"submit\"] {\n            background-color: #4CAF50;\n            color: white;\n            padding: 8px 16px;\n            border: none;\n            border-radius: 4px;\n            cursor: pointer;\n            font-size: 16px;\n        }\n        input[type=\"submit\"]:hover {\n            background-color: #45a049;\n        }\n        .error {\n            color: red;\n            margin-bottom: 10px;\n        }\n        .reply {\n            color: DarkGreen;\n            margin-bottom: 10px;\n        }\n    </style>\n</head>\n\n<body>\n    {{#payload.error}}\n    <div class=\"error\">\n        {{payload.error}}\n    </div>\n    {{/payload.error}}\n    {{#payload.reply}}\n    <div class=\"reply\">\n        {{{payload.reply}}}\n    </div>\n    {{/payload.reply}}\n    <div class=\"container\">\n        <form id=\"messageForm\" action=\"/message\" method=\"POST\">\n            <textarea id=\"messageInput\" name=\"message\" rows=\"5\" placeholder=\"Type here, Ctrl + Enter to send\"></textarea>\n            <br/>\n            <input type=\"submit\" value=\"Send\">\n        </form>\n    </div>\n</body>\n<script>\nconst input = document.getElementById('messageInput');\nconst handler = (event) => {\n    if (event.ctrlKey && event.key === 'Enter') {\n        event.preventDefault(); // Prevent the default new line\n        document.getElementById('messageForm').submit(); // Submit the form\n    }\n}\ninput.addEventListener('keydown', handler);\ninput.focus();\n</script>\n</html>",
+        "output": "str",
+        "x": 1360,
+        "y": 180,
+        "wires": [
+            [
+                "ad4f593ea3daf956"
+            ]
+        ]
     }
 ]
